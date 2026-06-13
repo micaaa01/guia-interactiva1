@@ -1,0 +1,1638 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>¡La Gran Aventura del Saber!</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap');
+
+  :root {
+    --morado: #7C3AED;
+    --naranja: #F97316;
+    --azul: #3B82F6;
+    --verde: #10B981;
+    --rosa: #EC4899;
+    --amarillo: #F59E0B;
+    --fondo: #FFF8F0;
+    --texto: #1E1B4B;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--fondo);
+    color: var(--texto);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ========== ESTRELLAS DE FONDO ========== */
+  .stars {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 0; overflow: hidden;
+  }
+  .star {
+    position: absolute;
+    animation: twinkle 3s infinite alternate;
+    font-size: 1.2rem;
+    opacity: 0.4;
+  }
+  @keyframes twinkle {
+    from { opacity: 0.2; transform: scale(0.8); }
+    to   { opacity: 0.7; transform: scale(1.2); }
+  }
+
+  /* ========== PANTALLA DE PORTADA ========== */
+  #portada {
+    position: fixed; inset: 0; z-index: 100;
+    background: linear-gradient(135deg, #4C1D95 0%, #1D4ED8 50%, #0F766E 100%);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 20px;
+    transition: opacity 0.8s, transform 0.8s;
+  }
+  #portada h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    color: #FDE68A;
+    text-shadow: 4px 4px 0 #92400E;
+    line-height: 1.1;
+    margin-bottom: 10px;
+  }
+  #portada p {
+    font-size: clamp(1rem, 3vw, 1.5rem);
+    color: #E0E7FF;
+    max-width: 500px;
+    margin-bottom: 30px;
+  }
+  .planeta {
+    font-size: 5rem;
+    animation: spin-slow 8s linear infinite;
+    display: block; margin-bottom: 20px;
+  }
+  @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  .btn-empezar {
+    background: linear-gradient(135deg, var(--naranja), #DC2626);
+    color: white;
+    border: none;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.6rem;
+    padding: 16px 48px;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 8px 25px rgba(249,115,22,0.5);
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: pulse-btn 1.5s ease-in-out infinite;
+  }
+  .btn-empezar:hover { transform: scale(1.08); box-shadow: 0 12px 35px rgba(249,115,22,0.6); }
+  @keyframes pulse-btn {
+    0%, 100% { box-shadow: 0 8px 25px rgba(249,115,22,0.5); }
+    50% { box-shadow: 0 8px 40px rgba(249,115,22,0.9); }
+  }
+
+  .nombre-input {
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.2rem;
+    padding: 12px 24px;
+    border-radius: 50px;
+    border: 3px solid rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.15);
+    color: white;
+    text-align: center;
+    outline: none;
+    width: 280px;
+    margin-bottom: 16px;
+  }
+  .nombre-input::placeholder { color: rgba(255,255,255,0.6); }
+
+  /* ========== LAYOUT PRINCIPAL ========== */
+  #app { display: none; position: relative; z-index: 1; }
+
+  /* ========== BARRA SUPERIOR ========== */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: linear-gradient(90deg, var(--morado), var(--azul));
+    color: white; padding: 12px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  }
+  .topbar-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.3rem;
+  }
+  .xp-bar-container {
+    display: flex; align-items: center; gap: 10px;
+    flex: 1; max-width: 300px; margin: 0 16px;
+  }
+  .xp-label { font-size: 0.85rem; font-weight: 800; white-space: nowrap; }
+  .xp-track {
+    flex: 1; height: 14px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 20px; overflow: hidden;
+  }
+  .xp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--amarillo), var(--naranja));
+    border-radius: 20px;
+    transition: width 0.8s cubic-bezier(0.34,1.56,0.64,1);
+    width: 0%;
+  }
+  .stars-count {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.1rem;
+    background: rgba(255,255,255,0.2);
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+
+  /* ========== MAPA DE MISIONES ========== */
+  .missions-map {
+    max-width: 900px; margin: 30px auto; padding: 0 20px;
+  }
+  .map-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2rem;
+    color: var(--morado);
+    text-align: center;
+    margin-bottom: 24px;
+    text-shadow: 2px 2px 0 rgba(124,58,237,0.2);
+  }
+  .missions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+  .mission-card {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    position: relative;
+    overflow: hidden;
+  }
+  .mission-card:hover { transform: translateY(-6px); box-shadow: 0 12px 30px rgba(0,0,0,0.15); }
+  .mission-card.active { border-color: var(--naranja); }
+  .mission-card.completed { border-color: var(--verde); }
+  .mission-card.locked { opacity: 0.5; cursor: not-allowed; }
+  .mission-card.locked:hover { transform: none; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+
+  .mission-emoji { font-size: 2.8rem; display: block; margin-bottom: 8px; }
+  .mission-name {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.1rem;
+    color: var(--texto);
+  }
+  .mission-subject {
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-top: 4px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    display: inline-block;
+  }
+  .subject-esp { background: #EDE9FE; color: var(--morado); }
+  .subject-mat { background: #DBEAFE; color: var(--azul); }
+  .mission-badge {
+    position: absolute; top: 10px; right: 10px;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem;
+  }
+  .badge-done { background: var(--verde); }
+  .badge-lock { background: #9CA3AF; font-size: 0.75rem; }
+
+  /* ========== PANTALLA DE ACTIVIDAD ========== */
+  #activity-screen {
+    display: none;
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 0 16px 80px;
+  }
+  .back-btn {
+    background: none;
+    border: 2px solid var(--morado);
+    color: var(--morado);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 1rem;
+    padding: 8px 20px;
+    border-radius: 30px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .back-btn:hover { background: var(--morado); color: white; }
+
+  .activity-header {
+    background: linear-gradient(135deg, var(--morado), var(--azul));
+    color: white;
+    border-radius: 24px;
+    padding: 24px;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+  .activity-header h2 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2rem;
+    margin-bottom: 8px;
+  }
+  .activity-header p { font-size: 1.05rem; opacity: 0.9; }
+
+  /* ========== TARJETAS DE ACTIVIDAD ========== */
+  .card {
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.07);
+    border-left: 5px solid var(--morado);
+  }
+  .card.orange  { border-left-color: var(--naranja); }
+  .card.green   { border-left-color: var(--verde); }
+  .card.pink    { border-left-color: var(--rosa); }
+  .card.yellow  { border-left-color: var(--amarillo); }
+  .card.blue    { border-left-color: var(--azul); }
+
+  .card h3 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.4rem;
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* ========== CUENTO ========== */
+  .story-box {
+    background: linear-gradient(135deg, #FFF7ED, #FEF3C7);
+    border-radius: 16px;
+    padding: 20px;
+    font-size: 1.05rem;
+    line-height: 1.8;
+    border: 2px dashed var(--naranja);
+  }
+  .story-box p { margin-bottom: 12px; }
+  .story-box strong { color: var(--morado); }
+  .story-highlight {
+    background: var(--amarillo);
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-weight: 700;
+  }
+
+  /* ========== PREGUNTAS ========== */
+  .question {
+    margin-bottom: 20px;
+  }
+  .question p {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--texto);
+  }
+  .answer-input {
+    width: 100%;
+    border: 2px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    resize: vertical;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  .answer-input:focus { border-color: var(--morado); }
+
+  /* ========== OPCIONES MÚLTIPLES ========== */
+  .options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+  }
+  .option-btn {
+    background: #F3F4F6;
+    border: 2px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+  }
+  .option-btn:hover { background: #EDE9FE; border-color: var(--morado); }
+  .option-btn.correct { background: #D1FAE5; border-color: var(--verde); color: #065F46; }
+  .option-btn.wrong   { background: #FEE2E2; border-color: #EF4444; color: #991B1B; }
+  .option-btn.disabled { pointer-events: none; }
+
+  /* ========== FEEDBACK ========== */
+  .feedback {
+    display: none;
+    padding: 14px 18px;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin-top: 12px;
+    align-items: center;
+    gap: 10px;
+  }
+  .feedback.correct { background: #D1FAE5; color: #065F46; display: flex; }
+  .feedback.wrong   { background: #FEE2E2; color: #991B1B; display: flex; }
+
+  /* ========== MATEMÁTICAS ========== */
+  .math-problem {
+    background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 2rem;
+    color: var(--azul);
+    margin-bottom: 16px;
+    border: 2px solid #BFDBFE;
+  }
+  .math-input-row {
+    display: flex; gap: 12px; align-items: center;
+    justify-content: center; flex-wrap: wrap;
+  }
+  .math-answer-input {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    width: 100px;
+    text-align: center;
+    border: 3px solid #BFDBFE;
+    border-radius: 14px;
+    padding: 8px;
+    outline: none;
+    color: var(--azul);
+    transition: border-color 0.2s;
+  }
+  .math-answer-input:focus { border-color: var(--morado); }
+
+  /* ========== JUEGO DE PALABRAS (DRAG) ========== */
+  .match-container { display: flex; gap: 20px; flex-wrap: wrap; }
+  .match-col { flex: 1; min-width: 150px; }
+  .match-col h4 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1rem;
+    margin-bottom: 10px;
+    color: var(--morado);
+  }
+  .match-item {
+    background: #EDE9FE;
+    border: 2px solid #C4B5FD;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: grab;
+    transition: transform 0.15s, box-shadow 0.15s;
+    user-select: none;
+  }
+  .match-item:active { cursor: grabbing; transform: scale(1.05); }
+  .match-target {
+    background: #F3F4F6;
+    border: 2px dashed #9CA3AF;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+    min-height: 46px;
+    transition: background 0.2s, border-color 0.2s;
+    display: flex; align-items: center;
+  }
+  .match-target.over { background: #EDE9FE; border-color: var(--morado); }
+  .match-target.matched { background: #D1FAE5; border-color: var(--verde); }
+
+  /* ========== CONTADOR DE NÚMEROS ========== */
+  .counter-game {
+    text-align: center;
+  }
+  .counter-display {
+    font-family: 'Fredoka One', cursive;
+    font-size: 4rem;
+    color: var(--azul);
+    margin: 16px 0;
+  }
+  .counter-btns { display: flex; gap: 12px; justify-content: center; margin: 12px 0; }
+  .counter-btn {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.6rem;
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    border: none; cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .counter-btn:hover { transform: scale(1.1); }
+  .counter-btn.plus  { background: var(--verde); color: white; }
+  .counter-btn.minus { background: var(--rosa); color: white; }
+
+  /* ========== BOTÓN VERIFICAR ========== */
+  .verify-btn {
+    background: linear-gradient(135deg, var(--verde), #059669);
+    color: white;
+    border: none;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.3rem;
+    padding: 14px 36px;
+    border-radius: 50px;
+    cursor: pointer;
+    margin-top: 16px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 15px rgba(16,185,129,0.4);
+    display: block;
+  }
+  .verify-btn:hover { transform: scale(1.05); }
+
+  /* ========== MISIÓN COMPLETA ========== */
+  .mission-complete {
+    display: none;
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.6);
+    align-items: center; justify-content: center;
+  }
+  .mission-complete.show { display: flex; }
+  .complete-modal {
+    background: white;
+    border-radius: 30px;
+    padding: 40px;
+    text-align: center;
+    max-width: 420px;
+    width: 90%;
+    animation: pop-in 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes pop-in {
+    from { transform: scale(0.5); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+  }
+  .complete-emoji { font-size: 5rem; display: block; margin-bottom: 16px; }
+  .complete-modal h2 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2.2rem;
+    color: var(--morado);
+    margin-bottom: 12px;
+  }
+  .complete-modal p { font-size: 1.1rem; color: #6B7280; margin-bottom: 24px; }
+  .stars-earned {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    animation: bounce 0.5s ease-in-out infinite alternate;
+  }
+  @keyframes bounce {
+    from { transform: translateY(0); }
+    to   { transform: translateY(-8px); }
+  }
+  .continue-btn {
+    background: linear-gradient(135deg, var(--naranja), #DC2626);
+    color: white;
+    border: none;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.4rem;
+    padding: 14px 40px;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .continue-btn:hover { transform: scale(1.05); }
+
+  /* ========== CONFETI ========== */
+  .confetti-piece {
+    position: fixed;
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 300;
+    animation: confetti-fall 2.5s ease-in forwards;
+  }
+  @keyframes confetti-fall {
+    0%   { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* ========== HISTORIA CON IMAGEN MENTAL ========== */
+  .imagine-box {
+    background: linear-gradient(135deg, #FDF4FF, #FAE8FF);
+    border-radius: 16px;
+    padding: 20px;
+    border: 2px dashed var(--rosa);
+    margin-top: 16px;
+  }
+  .imagine-box h4 {
+    font-family: 'Fredoka One', cursive;
+    color: var(--rosa);
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+  }
+  .imagine-canvas {
+    width: 100%;
+    height: 180px;
+    background: white;
+    border-radius: 12px;
+    border: 2px solid #F0ABFC;
+    cursor: crosshair;
+    display: block;
+  }
+  .canvas-tools {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-top: 10px; align-items: center;
+  }
+  .color-dot {
+    width: 30px; height: 30px;
+    border-radius: 50%; border: 2px solid white;
+    cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    transition: transform 0.15s;
+  }
+  .color-dot:hover { transform: scale(1.2); }
+  .color-dot.selected { outline: 3px solid var(--texto); }
+  .clear-canvas-btn {
+    background: #F3F4F6; border: 1px solid #E5E7EB;
+    padding: 6px 14px; border-radius: 20px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.9rem; font-weight: 700;
+    cursor: pointer; margin-left: auto;
+  }
+
+  /* ========== TABLA DE LOGROS ========== */
+  .achievements {
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 0 20px 60px;
+  }
+  .achievement-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+  }
+  .achievement-item {
+    background: white;
+    border-radius: 16px;
+    padding: 16px 10px;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.07);
+    transition: transform 0.2s;
+  }
+  .achievement-item:hover { transform: translateY(-3px); }
+  .achievement-item .ach-emoji { font-size: 2.2rem; }
+  .achievement-item .ach-name { font-size: 0.85rem; font-weight: 700; color: #6B7280; margin-top: 6px; }
+  .achievement-item.unlocked .ach-name { color: var(--morado); }
+  .achievement-item:not(.unlocked) { opacity: 0.4; filter: grayscale(1); }
+
+  /* ========== PERSONAJE GUÍA ========== */
+  .guide-bubble {
+    display: flex; gap: 14px; align-items: flex-start;
+    background: white;
+    border-radius: 20px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.07);
+    border: 2px solid #EDE9FE;
+  }
+  .guide-char { font-size: 3rem; flex-shrink: 0; }
+  .guide-text { font-size: 1rem; line-height: 1.6; }
+  .guide-text strong { color: var(--morado); }
+
+  /* ========== TABS ========== */
+  .tabs {
+    display: flex; gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1rem;
+    padding: 10px 22px;
+    border-radius: 30px;
+    border: 2px solid #E5E7EB;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #6B7280;
+  }
+  .tab-btn.active {
+    background: var(--morado);
+    border-color: var(--morado);
+    color: white;
+  }
+
+  /* ========== TABLA MULTIPLICAR ========== */
+  .mult-table {
+    border-collapse: collapse;
+    width: 100%;
+    font-family: 'Fredoka One', cursive;
+  }
+  .mult-table td, .mult-table th {
+    padding: 10px; text-align: center;
+    border-radius: 6px; font-size: 1.1rem;
+  }
+  .mult-table th { background: var(--morado); color: white; }
+  .mult-table td { background: #EDE9FE; color: var(--morado); }
+  .mult-table td input {
+    width: 50px; text-align: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.1rem;
+    border: 2px solid #C4B5FD;
+    border-radius: 8px; padding: 4px;
+    outline: none; color: var(--morado);
+    background: white;
+  }
+  .mult-table td input:focus { border-color: var(--naranja); }
+  .mult-table td input.right { background: #D1FAE5; border-color: var(--verde); }
+  .mult-table td input.wrong { background: #FEE2E2; border-color: #EF4444; }
+
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 600px) {
+    .missions-grid { grid-template-columns: repeat(2, 1fr); }
+    .match-container { flex-direction: column; }
+    .xp-bar-container { max-width: 160px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ESTRELLAS DE FONDO -->
+<div class="stars" id="stars"></div>
+
+<!-- PORTADA -->
+<div id="portada">
+  <span class="planeta">🪐</span>
+  <h1>¡La Gran Aventura<br>del Saber!</h1>
+  <p>Matemáticas y Español para exploradores con mucha energía ⚡</p>
+  <input class="nombre-input" id="nombre-input" type="text" placeholder="¿Cómo te llamas, explorador(a)?" maxlength="20">
+  <button class="btn-empezar" onclick="startApp()">¡COMENZAR AVENTURA! 🚀</button>
+</div>
+
+<!-- APP PRINCIPAL -->
+<div id="app">
+  <!-- BARRA SUPERIOR -->
+  <div class="topbar">
+    <div class="topbar-title">🌟 <span id="topbar-name">Explorador</span></div>
+    <div class="xp-bar-container">
+      <span class="xp-label">XP</span>
+      <div class="xp-track"><div class="xp-fill" id="xp-fill"></div></div>
+      <span class="xp-label" id="xp-text">0/100</span>
+    </div>
+    <div class="stars-count">⭐ <span id="stars-total">0</span></div>
+  </div>
+
+  <!-- MAPA DE MISIONES -->
+  <div id="map-screen">
+    <div class="missions-map">
+      <p class="map-title">🗺️ Mapa de Misiones</p>
+
+      <div class="guide-bubble">
+        <span class="guide-char">🦉</span>
+        <div class="guide-text">
+          ¡Hola, <strong id="guide-name">explorador</strong>! Soy <strong>Buho</strong>, tu guía. 
+          Elige una misión para empezar. Puedes hacerlas en cualquier orden. 
+          <strong>¡No te apures, cada misión es un juego!</strong> 🎮
+        </div>
+      </div>
+
+      <div class="missions-grid" id="missions-grid"></div>
+    </div>
+  </div>
+
+  <!-- PANTALLA DE ACTIVIDAD -->
+  <div id="activity-screen">
+    <button class="back-btn" onclick="showMap()">← Volver al mapa</button>
+    <div id="activity-content"></div>
+  </div>
+</div>
+
+<!-- MODAL: MISIÓN COMPLETA -->
+<div class="mission-complete" id="complete-modal">
+  <div class="complete-modal">
+    <span class="complete-emoji" id="complete-emoji">🎉</span>
+    <h2 id="complete-title">¡Misión cumplida!</h2>
+    <p id="complete-msg">¡Lo hiciste genial!</p>
+    <div class="stars-earned" id="stars-earned-display">⭐⭐⭐</div>
+    <button class="continue-btn" onclick="closeMissionComplete()">¡Seguir explorando! 🚀</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATOS
+// ============================================================
+let playerName = '';
+let totalXP = 0;
+let totalStars = 0;
+let completedMissions = new Set();
+
+const missions = [
+  {
+    id: 'lectura1',
+    name: 'El Dragón Chispas',
+    emoji: '🐉',
+    subject: 'Español',
+    subjectClass: 'subject-esp',
+    color: 'orange',
+    xp: 20,
+    stars: 2,
+  },
+  {
+    id: 'vocabulario',
+    name: 'Detective de Palabras',
+    emoji: '🔍',
+    subject: 'Español',
+    subjectClass: 'subject-esp',
+    color: 'pink',
+    xp: 15,
+    stars: 2,
+  },
+  {
+    id: 'escritura',
+    name: 'El Escritor Mágico',
+    emoji: '✍️',
+    subject: 'Español',
+    subjectClass: 'subject-esp',
+    color: 'pink',
+    xp: 20,
+    stars: 2,
+  },
+  {
+    id: 'sumas',
+    name: 'Sumas Espaciales',
+    emoji: '🚀',
+    subject: 'Matemáticas',
+    subjectClass: 'subject-mat',
+    color: 'blue',
+    xp: 15,
+    stars: 2,
+  },
+  {
+    id: 'multiplicacion',
+    name: 'Multiplicación Veloz',
+    emoji: '⚡',
+    subject: 'Matemáticas',
+    subjectClass: 'subject-mat',
+    color: 'blue',
+    xp: 20,
+    stars: 2,
+  },
+  {
+    id: 'logica',
+    name: 'Ninja del Cerebro',
+    emoji: '🥷',
+    subject: 'Matemáticas',
+    subjectClass: 'subject-mat',
+    color: 'green',
+    xp: 25,
+    stars: 3,
+  },
+  {
+    id: 'final',
+    name: '¡Misión Final!',
+    emoji: '🏆',
+    subject: 'Español + Mates',
+    subjectClass: 'subject-esp',
+    color: 'yellow',
+    xp: 30,
+    stars: 3,
+  },
+];
+
+// ============================================================
+// ACTIVIDADES
+// ============================================================
+const activities = {
+
+  lectura1: () => `
+    <div class="activity-header">
+      <h2>🐉 El Dragón Chispas</h2>
+      <p>Lee la historia con calma. ¡Cierra los ojos y visualiza cada parte!</p>
+    </div>
+
+    <div class="guide-bubble">
+      <span class="guide-char">🦉</span>
+      <div class="guide-text"><strong>Truco de Buho:</strong> Antes de leer, mira el título. ¿De qué crees que trata la historia? 
+      Eso ayuda a tu cerebro a prepararse. ¡Después comprobamos si adivinaste!</div>
+    </div>
+
+    <div class="card orange">
+      <h3>📖 Lee la historia</h3>
+      <div class="story-box">
+        <p>Había una vez un dragón llamado <strong>Chispas</strong>. Era pequeño, de color azul brillante, con manchas amarillas en las alas. Vivía en una cueva fría en lo alto de una montaña nevada.</p>
+        <p>El problema de Chispas era muy, muy extraño: <span class="story-highlight">¡le tenía miedo al fuego!</span> Cuando estornudaba, le salían llamas por la boca, y eso lo asustaba tanto que corría a esconderse bajo su cobija de roca.</p>
+        <p>Un día, una niña llamada <strong>Luna</strong> subió la montaña. Llevaba una bufanda roja, una mochila llena de galletas y una linterna que brillaba como una estrella pequeñita.</p>
+        <p>—<em>¡Hola!</em> —dijo Luna al ver al dragón temblando—. <em>¿Por qué estás asustado?</em></p>
+        <p>—<em>Tengo miedo de mi propio fuego</em> —respondió Chispas—. <em>¿Y si quemo todo lo que quiero?</em></p>
+        <p>Luna sacó una galleta y se la ofreció. —<em>Mira. El fuego dentro de ti no es peligro, es magia. Solo necesitas aprender a usarlo. ¿Me ayudas a calentar esta galleta?</em></p>
+        <p>Chispas respiró profundo. Abrió su boca muy poquito, y salió <span class="story-highlight">una llamita suave</span> que calentó la galleta perfectamente.</p>
+        <p>—<em>¡Lo logré!</em> —gritó Chispas dando saltos—. <em>¡Mi fuego es útil!</em></p>
+        <p>Y aprendió algo importante: <strong>lo que nos da miedo, a veces, es nuestro mayor superpoder.</strong></p>
+      </div>
+    </div>
+
+    <div class="card orange">
+      <h3>🎨 Dibuja lo que imaginaste</h3>
+      <div class="imagine-box">
+        <h4>¿Cómo se ve Chispas en tu mente? ¡Dibújalo!</h4>
+        <canvas class="imagine-canvas" id="drawing-canvas" width="700" height="180"></canvas>
+        <div class="canvas-tools">
+          <div class="color-dot selected" style="background:#3B82F6" data-color="#3B82F6" onclick="selectColor(this)"></div>
+          <div class="color-dot" style="background:#F59E0B" data-color="#F59E0B" onclick="selectColor(this)"></div>
+          <div class="color-dot" style="background:#EC4899" data-color="#EC4899" onclick="selectColor(this)"></div>
+          <div class="color-dot" style="background:#10B981" data-color="#10B981" onclick="selectColor(this)"></div>
+          <div class="color-dot" style="background:#7C3AED" data-color="#7C3AED" onclick="selectColor(this)"></div>
+          <div class="color-dot" style="background:#1E1B4B" data-color="#1E1B4B" onclick="selectColor(this)"></div>
+          <button class="clear-canvas-btn" onclick="clearCanvas()">🗑️ Borrar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card orange">
+      <h3>❓ Preguntas de comprensión</h3>
+      <div id="q-lectura1">
+        <div class="question">
+          <p>1. ¿Cuál era el problema extraño de Chispas?</p>
+          <div class="options-grid">
+            <button class="option-btn" onclick="checkOption(this, false, 'q1')">Le daba miedo el agua</button>
+            <button class="option-btn" onclick="checkOption(this, true, 'q1')">Le daba miedo el fuego</button>
+            <button class="option-btn" onclick="checkOption(this, false, 'q1')">Le daba miedo Luna</button>
+          </div>
+          <div id="fb-q1" class="feedback"></div>
+        </div>
+        <div class="question">
+          <p>2. ¿Cómo ayudó Luna al dragón?</p>
+          <div class="options-grid">
+            <button class="option-btn" onclick="checkOption(this, false, 'q2')">Le trajo agua fría</button>
+            <button class="option-btn" onclick="checkOption(this, false, 'q2')">Le enseñó a volar</button>
+            <button class="option-btn" onclick="checkOption(this, true, 'q2')">Le pidió que calentara una galleta</button>
+          </div>
+          <div id="fb-q2" class="feedback"></div>
+        </div>
+        <div class="question">
+          <p>3. ¿Qué aprendió Chispas al final?</p>
+          <textarea class="answer-input" placeholder="Escribe tu respuesta con tus propias palabras..." rows="2"></textarea>
+        </div>
+        <button class="verify-btn" onclick="completeMission('lectura1')">✅ ¡Terminar misión!</button>
+      </div>
+    </div>
+  `,
+
+  vocabulario: () => `
+    <div class="activity-header">
+      <h2>🔍 Detective de Palabras</h2>
+      <p>Encuentra el significado de palabras nuevas como un detective</p>
+    </div>
+
+    <div class="guide-bubble">
+      <span class="guide-char">🦉</span>
+      <div class="guide-text"><strong>Buho dice:</strong> Cuando encuentres una palabra que no conoces, 
+      <strong>no te rindas</strong>. Lee las palabras de alrededor, 
+      te darán pistas. ¡Eso se llama usar el contexto!</div>
+    </div>
+
+    <div class="card pink">
+      <h3>🕵️ Une cada palabra con su significado</h3>
+      <p style="margin-bottom:16px;color:#6B7280">Arrastra las palabras al significado correcto</p>
+
+      <div class="match-container">
+        <div class="match-col">
+          <h4>🔤 Palabras</h4>
+          <div id="word-temblorosa" class="match-item" draggable="true" ondragstart="dragStart(event,'temblorosa')">temblorosa</div>
+          <div id="word-nevada" class="match-item" draggable="true" ondragstart="dragStart(event,'nevada')">nevada</div>
+          <div id="word-linterna" class="match-item" draggable="true" ondragstart="dragStart(event,'linterna')">linterna</div>
+          <div id="word-dudó" class="match-item" draggable="true" ondragstart="dragStart(event,'dudó')">dudó</div>
+        </div>
+        <div class="match-col">
+          <h4>💡 Significados</h4>
+          <div class="match-target" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="dropWord(event,'que tiembla de frío o miedo','temblorosa')" data-answer="temblorosa">Que tiembla de frío o miedo</div>
+          <div class="match-target" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="dropWord(event,'cubierta de nieve','nevada')" data-answer="nevada">Cubierta de nieve</div>
+          <div class="match-target" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="dropWord(event,'objeto que da luz','linterna')" data-answer="linterna">Objeto que da luz</div>
+          <div class="match-target" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="dropWord(event,'vaciló antes de decidir','dudó')" data-answer="dudó">Vaciló antes de decidir</div>
+        </div>
+      </div>
+      <div id="match-feedback" style="margin-top:12px;font-weight:700;font-size:1.05rem;"></div>
+    </div>
+
+    <div class="card pink">
+      <h3>✏️ Usa las palabras en una oración</h3>
+      <div class="question">
+        <p>Escribe una oración usando la palabra <strong>"nevada"</strong>:</p>
+        <textarea class="answer-input" placeholder="La montaña estaba..." rows="2"></textarea>
+      </div>
+      <div class="question">
+        <p>Escribe una oración usando la palabra <strong>"linterna"</strong>:</p>
+        <textarea class="answer-input" placeholder="En la oscuridad, usé..." rows="2"></textarea>
+      </div>
+      <button class="verify-btn" onclick="completeMission('vocabulario')">✅ ¡Terminar misión!</button>
+    </div>
+  `,
+
+  escritura: () => `
+    <div class="activity-header">
+      <h2>✍️ El Escritor Mágico</h2>
+      <p>Crea tu propia mini-historia con inicio, nudo y desenlace</p>
+    </div>
+
+    <div class="guide-bubble">
+      <span class="guide-char">🦉</span>
+      <div class="guide-text"><strong>Buho dice:</strong> Las historias tienen 3 partes.
+      <strong>Inicio</strong>: ¿quién y dónde?
+      <strong>Nudo</strong>: ¿qué problema hay?
+      <strong>Desenlace</strong>: ¿cómo termina? ¡Tú inventas todo!</div>
+    </div>
+
+    <div class="card pink">
+      <h3>🎭 Elige tu personaje</h3>
+      <div class="options-grid">
+        <button class="option-btn" onclick="selectPersonaje(this)">🤖 Robot tierno</button>
+        <button class="option-btn" onclick="selectPersonaje(this)">🧜 Sirena valiente</button>
+        <button class="option-btn" onclick="selectPersonaje(this)">🦕 Dinosaurio chef</button>
+        <button class="option-btn" onclick="selectPersonaje(this)">✨ ¡Invento el mío!</button>
+      </div>
+      <div id="personaje-propio" style="display:none;margin-top:12px">
+        <input class="answer-input" style="height:48px" placeholder="¿Cómo se llama tu personaje?" id="custom-personaje">
+      </div>
+    </div>
+
+    <div class="card pink">
+      <h3>📝 Escribe tu historia</h3>
+      <div class="question">
+        <p>🌅 <strong>INICIO</strong> — Presenta a tu personaje. ¿Quién es? ¿Dónde vive?</p>
+        <textarea class="answer-input" placeholder="Había una vez..." rows="3" id="inicio-text"></textarea>
+      </div>
+      <div class="question">
+        <p>😮 <strong>NUDO</strong> — ¿Qué problema aparece? ¿Qué pasa?</p>
+        <textarea class="answer-input" placeholder="Un día..." rows="3" id="nudo-text"></textarea>
+      </div>
+      <div class="question">
+        <p>🎉 <strong>DESENLACE</strong> — ¿Cómo termina todo? ¿Qué aprendió el personaje?</p>
+        <textarea class="answer-input" placeholder="Al final..." rows="3" id="final-text"></textarea>
+      </div>
+      <button class="verify-btn" onclick="previewStory()">👀 ¡Ver mi historia!</button>
+      <div id="story-preview" style="display:none;margin-top:16px">
+        <div class="story-box" id="story-preview-text"></div>
+        <button class="verify-btn" style="margin-top:12px" onclick="completeMission('escritura')">✅ ¡Terminar misión!</button>
+      </div>
+    </div>
+  `,
+
+  sumas: () => `
+    <div class="activity-header">
+      <h2>🚀 Sumas y Restas Espaciales</h2>
+      <p>Resuelve problemas como un detective matemático</p>
+    </div>
+
+    <div class="guide-bubble">
+      <span class="guide-char">🦉</span>
+      <div class="guide-text"><strong>Los 4 pasos del Detective Matemático:</strong><br>
+      1️⃣ <strong>Lee</strong> el problema despacio<br>
+      2️⃣ <strong>Busca</strong> los números importantes<br>
+      3️⃣ <strong>Piensa</strong> qué operación usar<br>
+      4️⃣ <strong>Comprueba</strong> si tiene sentido</div>
+    </div>
+
+    <div class="card blue">
+      <h3>⭐ Problema espacial</h3>
+      <div class="story-box">
+        <p>El Comandante Félix tiene una nave con <span class="story-highlight">48 cristales</span>. 
+        En el Planeta Rojo recogió <span class="story-highlight">27 más</span>. 
+        Al pasar por asteroides, perdió <span class="story-highlight">15</span>.</p>
+        <p><strong>¿Cuántos cristales tiene ahora?</strong></p>
+      </div>
+      <div class="math-problem">48 + 27 − 15 = ?</div>
+      <div class="math-input-row">
+        <span style="font-family:'Fredoka One',cursive;font-size:1.3rem;color:#6B7280">Respuesta:</span>
+        <input type="number" class="math-answer-input" id="ans-cristales" placeholder="?">
+        <button class="verify-btn" style="margin:0" onclick="checkMath('ans-cristales', 60, 'fb-cristales')">Verificar</button>
+      </div>
+      <div id="fb-cristales" class="feedback" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card blue">
+      <h3>🎯 Práctica rápida — ¡Calcula como ninja!</h3>
+      <div style="display:grid;gap:16px">
+        ${[
+          ['35 + 47', 82, 'Suma de planetas'],
+          ['82 − 39', 43, 'Asteroides escapados'],
+          ['64 + 28', 92, 'Estrellas descubiertas'],
+          ['100 − 43', 57, 'Combustible restante'],
+        ].map((op, i) => `
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <div class="math-problem" style="flex:1;min-width:180px;margin:0;font-size:1.4rem">${op[0]} = ?</div>
+            <input type="number" class="math-answer-input" id="ans-quick${i}" placeholder="?" style="width:80px">
+            <button class="verify-btn" style="margin:0;font-size:1rem;padding:10px 20px" onclick="checkMath('ans-quick${i}', ${op[1]}, 'fb-quick${i}')">✓</button>
+          </div>
+          <div id="fb-quick${i}" class="feedback"></div>
+        `).join('')}
+      </div>
+      <button class="verify-btn" onclick="completeMission('sumas')">✅ ¡Terminar misión!</button>
+    </div>
+  `,
+
+  multiplicacion: () => `
+    <div class="activity-header">
+      <h2>⚡ Multiplicación Veloz</h2>
+      <p>Multiplicar es sumar el mismo número varias veces, ¡pero más rápido!</p>
+    </div>
+
+    <div class="guide-bubble">
+      <span class="guide-char">🦉</span>
+      <div class="guide-text"><strong>El secreto:</strong> 
+      <strong>4 × 3</strong> significa <strong>4 + 4 + 4 = 12</strong>.<br>
+      O también: hay 4 cajas con 3 pelotas cada una. ¿Cuántas pelotas en total? ¡12!</div>
+    </div>
+
+    <div class="card blue">
+      <h3>🧪 El Mercado de Pociones Mágicas</h3>
+      <div class="story-box">
+        <p>La bruja Celeste tiene <span class="story-highlight">6 estantes</span> con 
+        <span class="story-highlight">8 frascos</span> cada uno. Esta semana vendió 
+        <span class="story-highlight">12 frascos</span>.</p>
+      </div>
+      <div style="display:grid;gap:14px;margin-top:14px">
+        <div>
+          <p style="font-weight:700;margin-bottom:8px">¿Cuántos frascos tenía al principio? (6 × 8)</p>
+          <div class="math-input-row">
+            <input type="number" class="math-answer-input" id="ans-pocion1" placeholder="?">
+            <button class="verify-btn" style="margin:0" onclick="checkMath('ans-pocion1', 48, 'fb-pocion1')">Verificar</button>
+          </div>
+          <div id="fb-pocion1" class="feedback" style="margin-top:8px"></div>
+        </div>
+        <div>
+          <p style="font-weight:700;margin-bottom:8px">¿Cuántos le quedan después de vender 12?</p>
+          <div class="math-input-row">
+            <input type="number" class="math-answer-input" id="ans-pocion2" placeholder="?">
+            <button class="verify-btn" style="margin:0" onclick="checkMath('ans-pocion2', 36, 'fb-pocion2')">Verificar</button>
+          </div>
+          <div id="fb-pocion2" class="feedback" style="margin-top:8px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card blue">
+      <h3>📊 Completa la tabla de multiplicar</h3>
+      <div style="overflow-x:auto">
+        <table class="mult-table" id="mult-table">
+          <tr>
+            <th>×</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th>
+          </tr>
+          ${[2,3,4,5].map(row => `
+            <tr>
+              <th>${row}</th>
+              ${[1,2,3,4,5].map(col => {
+                const val = row * col;
+                const isGiven = (row === 2 && col <= 2) || (row === 3 && col === 1) || (row === 3 && col === 3) || (row === 4 && col === 4) || (row === 5 && col === 5);
+                return isGiven
+                  ? `<td>${val}</td>`
+                  : `<td><input type="number" data-answer="${val}" onchange="checkMultCell(this)"></td>`;
+              }).join('')}
+            </tr>
+          `).join('')}
+        </table>
+      </div>
+      <button class="verify-btn" onclick="checkMultTable()">✅ ¡Revisar tabla!</button>
+      <div id="mult-feedback" style="margin-top:10px;font-weight:700;font-size:1.05rem;"></div>
+    </div>
+    <button class="verify-btn" onclick="completeMission('multiplicacion')">🏆 ¡Terminar misión!</button>
+  `,
+
+  logica: () => `
+    <div class="activity-header">
+      <h2>🥷 Ninja del Cerebro</h2>
+      <p>Problemas de lógica: ¡piensa, imagina y prueba!</p>
+    </div>
+
+    <div class="guide-bubble">
+      <span class="guide-char">🦉</span>
+      <div class="guide-text"><strong>Buho dice:</strong> Estos problemas no tienen una sola forma de resolverse.
+      <strong>Prueba, equivócate, intenta de nuevo</strong>. ¡Así piensan los genios! 🧠</div>
+    </div>
+
+    <div class="card green">
+      <h3>🔢 RETO 1 — El Código Secreto</h3>
+      <div class="story-box">
+        <p>Un castillo tiene un código de <strong>3 dígitos</strong>. Estas son las pistas:</p>
+        <p>🔹 La <strong>suma</strong> de los 3 dígitos es <strong>9</strong></p>
+        <p>🔹 El <strong>primer dígito</strong> es el doble del tercero</p>
+        <p>🔹 El <strong>segundo dígito</strong> es impar y mayor que 3</p>
+      </div>
+      <div class="math-input-row" style="margin-top:16px">
+        <span style="font-family:'Fredoka One',cursive;font-size:1.3rem">Código:</span>
+        <input type="number" class="math-answer-input" id="code-1" placeholder="1°" style="width:70px">
+        <span style="font-family:'Fredoka One',cursive;font-size:1.5rem">—</span>
+        <input type="number" class="math-answer-input" id="code-2" placeholder="2°" style="width:70px">
+        <span style="font-family:'Fredoka One',cursive;font-size:1.5rem">—</span>
+        <input type="number" class="math-answer-input" id="code-3" placeholder="3°" style="width:70px">
+        <button class="verify-btn" style="margin:0" onclick="checkCode()">🔓 Abrir</button>
+      </div>
+      <div id="fb-code" class="feedback" style="margin-top:12px"></div>
+      <div style="margin-top:12px">
+        <p style="font-weight:700;margin-bottom:8px">¿Cómo lo descubriste? Explica tu razonamiento:</p>
+        <textarea class="answer-input" placeholder="Pensé que..." rows="2"></textarea>
+      </div>
+    </div>
+
+    <div class="card green">
+      <h3>🔢 RETO 2 — Patrón misterioso</h3>
+      <div class="story-box">
+        <p>Observa la secuencia de números y encuentra el siguiente:</p>
+        <p style="font-family:'Fredoka One',cursive;font-size:1.8rem;text-align:center;margin:10px 0;color:#10B981">
+          2 → 4 → 8 → 16 → <span style="color:#6B7280">?</span>
+        </p>
+        <p style="text-align:center;font-size:0.9rem;color:#9CA3AF">(Pista: cada número hace algo con el anterior)</p>
+      </div>
+      <div class="math-input-row">
+        <span style="font-family:'Fredoka One',cursive;font-size:1.3rem">El siguiente es:</span>
+        <input type="number" class="math-answer-input" id="ans-patron" placeholder="?">
+        <button class="verify-btn" style="margin:0" onclick="checkMath('ans-patron', 32, 'fb-patron')">✓</button>
+      </div>
+      <div id="fb-patron" class="feedback" style="margin-top:8px"></div>
+    </div>
+
+    <div class="card green">
+      <h3>🔢 RETO 3 — El contador loco</h3>
+      <p style="margin-bottom:12px">Alcanza exactamente el número <strong id="target-number">0</strong> usando solo +3 y -2</p>
+      <div class="counter-game">
+        <div class="counter-display" id="counter-val">0</div>
+        <div class="counter-btns">
+          <button class="counter-btn plus" onclick="addCounter(3)">+3</button>
+          <button class="counter-btn minus" onclick="addCounter(-2)">−2</button>
+        </div>
+        <button style="background:#F3F4F6;border:1px solid #E5E7EB;padding:8px 20px;border-radius:20px;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700" onclick="resetCounter()">🔄 Reiniciar</button>
+        <div id="counter-feedback" style="margin-top:12px;font-weight:700;font-size:1.1rem;"></div>
+      </div>
+    </div>
+
+    <button class="verify-btn" onclick="completeMission('logica')">🏆 ¡Terminar misión!</button>
+  `,
+
+  final: () => `
+    <div class="activity-header">
+      <h2>🏆 ¡Misión Final!</h2>
+      <p>Usa todo lo que aprendiste: leer, imaginar y calcular</p>
+    </div>
+
+    <div class="guide-bubble">
+      <span class="guide-char">🦉</span>
+      <div class="guide-text"><strong>¡Este es tu momento de brillar!</strong> 
+      Esta misión combina <strong>Español y Matemáticas</strong>. 
+      Lee la historia con atención y luego responde las preguntas. ¡Tú puedes! ⭐</div>
+    </div>
+
+    <div class="card yellow">
+      <h3>📖 El Mercader de Estrellas</h3>
+      <div class="story-box">
+        <p>El viejo <strong>Aldor</strong> vivía en una torre altísima, rodeada de nubes moradas. Vendía estrellas en su tienda: las <span class="story-highlight">pequeñas costaban 3 monedas</span>, las <span class="story-highlight">medianas 7 monedas</span> y las <span class="story-highlight">grandes 12 monedas</span>.</p>
+        <p>Un martes lluvioso llegó una niña llamada <strong>Paz</strong>. Tenía exactamente <span class="story-highlight">25 monedas</span> y quería comprar estrellas para iluminar el cuarto de su abuela enferma.</p>
+        <p>—<em>Quiero que mi abuela se ponga bien</em> —dijo Paz—. <em>Necesito llenar su cuarto de luz.</em></p>
+        <p>Aldor la miró con ojos brillantes. —<em>Entonces necesitas al menos 3 estrellas. ¿Cuáles escoges?</em></p>
+        <p>Paz pensó. No quería gastar más de lo que tenía, y quería llevar las <strong>más grandes posibles</strong>.</p>
+      </div>
+    </div>
+
+    <div class="card yellow">
+      <h3>🗣️ Preguntas de comprensión</h3>
+      <div class="question">
+        <p>1. ¿Qué vendía Aldor en su tienda?</p>
+        <div class="options-grid">
+          <button class="option-btn" onclick="checkOption(this, false, 'fq1')">Pociones mágicas</button>
+          <button class="option-btn" onclick="checkOption(this, true, 'fq1')">Estrellas de varios tamaños</button>
+          <button class="option-btn" onclick="checkOption(this, false, 'fq1')">Galletas espaciales</button>
+        </div>
+        <div id="fb-fq1" class="feedback"></div>
+      </div>
+      <div class="question">
+        <p>2. ¿Para qué quería las estrellas Paz?</p>
+        <div class="options-grid">
+          <button class="option-btn" onclick="checkOption(this, false, 'fq2')">Para decorar su mochila</button>
+          <button class="option-btn" onclick="checkOption(this, false, 'fq2')">Para venderlas</button>
+          <button class="option-btn" onclick="checkOption(this, true, 'fq2')">Para iluminar el cuarto de su abuela</button>
+        </div>
+        <div id="fb-fq2" class="feedback"></div>
+      </div>
+    </div>
+
+    <div class="card yellow">
+      <h3>🧮 ¡Ayuda a Paz a calcular!</h3>
+      <div class="question">
+        <p>3. Si Paz compra 1 grande (12) + 2 medianas (7+7), ¿cuánto gasta?</p>
+        <div class="math-input-row">
+          <input type="number" class="math-answer-input" id="ans-paz1" placeholder="?">
+          <button class="verify-btn" style="margin:0" onclick="checkMath('ans-paz1', 26, 'fb-paz1')">✓</button>
+        </div>
+        <div id="fb-paz1" class="feedback" style="margin-top:8px"></div>
+      </div>
+      <div class="question">
+        <p>4. Con 25 monedas, ¿cuántas estrellas GRANDES puede comprar? (cada grande = 12)</p>
+        <div class="options-grid">
+          <button class="option-btn" onclick="checkOption(this, true, 'fq4')">2 grandes = 24 monedas ✅</button>
+          <button class="option-btn" onclick="checkOption(this, false, 'fq4')">3 grandes = 36 monedas</button>
+          <button class="option-btn" onclick="checkOption(this, false, 'fq4')">1 grande = 12 monedas</button>
+        </div>
+        <div id="fb-fq4" class="feedback"></div>
+      </div>
+      <div class="question">
+        <p>5. Si compra 2 grandes, ¿le sobran monedas para comprar algo más?</p>
+        <textarea class="answer-input" placeholder="Le sobran ___ monedas. Con eso puede comprar..." rows="2"></textarea>
+      </div>
+    </div>
+
+    <div class="card yellow">
+      <h3>✍️ ¡Escribe el final de la historia!</h3>
+      <div class="question">
+        <p>¿Qué pasó después? ¿Se curó la abuela? ¿Volvió Paz a ver a Aldor? Escribe al menos 3 oraciones:</p>
+        <textarea class="answer-input" placeholder="Paz llegó a casa de su abuela y..." rows="4" id="final-story"></textarea>
+      </div>
+      <button class="verify-btn" onclick="completeMission('final')">🏆 ¡COMPLETAR AVENTURA!</button>
+    </div>
+  `,
+};
+
+// ============================================================
+// ESTADO DEL JUEGO
+// ============================================================
+let draggedWord = '';
+let matchedPairs = 0;
+let drawingColor = '#3B82F6';
+let isDrawing = false;
+let counterTarget = 7;
+let counterVal = 0;
+
+// ============================================================
+// INICIO
+// ============================================================
+function startApp() {
+  const nombre = document.getElementById('nombre-input').value.trim();
+  playerName = nombre || 'Explorador';
+  document.getElementById('topbar-name').textContent = playerName;
+  document.getElementById('guide-name').textContent = playerName;
+
+  document.getElementById('portada').style.opacity = '0';
+  document.getElementById('portada').style.transform = 'scale(0.9)';
+  setTimeout(() => {
+    document.getElementById('portada').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    renderMissions();
+  }, 700);
+}
+
+// Permitir Enter en el input del nombre
+document.getElementById('nombre-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startApp();
+});
+
+// ============================================================
+// ESTRELLAS DE FONDO
+// ============================================================
+const starsContainer = document.getElementById('stars');
+const starEmojis = ['⭐','✨','🌟','💫'];
+for (let i = 0; i < 20; i++) {
+  const s = document.createElement('div');
+  s.className = 'star';
+  s.textContent = starEmojis[Math.floor(Math.random() * starEmojis.length)];
+  s.style.left = Math.random() * 100 + '%';
+  s.style.top  = Math.random() * 100 + '%';
+  s.style.animationDelay = Math.random() * 3 + 's';
+  s.style.animationDuration = (2 + Math.random() * 2) + 's';
+  starsContainer.appendChild(s);
+}
+
+// ============================================================
+// MISIONES
+// ============================================================
+function renderMissions() {
+  const grid = document.getElementById('missions-grid');
+  grid.innerHTML = missions.map(m => `
+    <div class="mission-card ${completedMissions.has(m.id) ? 'completed' : 'active'}"
+         onclick="openMission('${m.id}')">
+      <div class="mission-badge ${completedMissions.has(m.id) ? 'badge-done' : ''}">
+        ${completedMissions.has(m.id) ? '✅' : ''}
+      </div>
+      <span class="mission-emoji">${m.emoji}</span>
+      <div class="mission-name">${m.name}</div>
+      <span class="mission-subject ${m.subjectClass}">${m.subject}</span>
+    </div>
+  `).join('');
+}
+
+function showMap() {
+  document.getElementById('map-screen').style.display = 'block';
+  document.getElementById('activity-screen').style.display = 'none';
+}
+
+function openMission(id) {
+  const mission = missions.find(m => m.id === id);
+  const content = document.getElementById('activity-content');
+  content.innerHTML = activities[id]();
+  document.getElementById('map-screen').style.display = 'none';
+  document.getElementById('activity-screen').style.display = 'block';
+  document.getElementById('activity-screen').scrollTo(0, 0);
+  window.scrollTo(0, 0);
+
+  // Inicializar canvas si existe
+  setTimeout(() => {
+    const canvas = document.getElementById('drawing-canvas');
+    if (canvas) initCanvas(canvas);
+    // Inicializar contador
+    if (id === 'logica') {
+      counterTarget = Math.floor(Math.random() * 10) + 5;
+      document.getElementById('target-number').textContent = counterTarget;
+      counterVal = 0;
+      document.getElementById('counter-val').textContent = 0;
+    }
+  }, 100);
+}
+
+// ============================================================
+// XP Y ESTRELLAS
+// ============================================================
+function addXP(amount) {
+  totalXP += amount;
+  const fill = document.getElementById('xp-fill');
+  const text = document.getElementById('xp-text');
+  fill.style.width = Math.min((totalXP % 100), 100) + '%';
+  text.textContent = totalXP + ' XP';
+}
+
+function addStars(n) {
+  totalStars += n;
+  document.getElementById('stars-total').textContent = totalStars;
+}
+
+// ============================================================
+// RESPUESTAS MÚLTIPLES
+// ============================================================
+function checkOption(btn, isCorrect, questionId) {
+  const sibs = btn.parentElement.querySelectorAll('.option-btn');
+  sibs.forEach(b => b.classList.add('disabled'));
+  btn.classList.add(isCorrect ? 'correct' : 'wrong');
+  const fb = document.getElementById('fb-' + questionId);
+  if (fb) {
+    if (isCorrect) {
+      fb.className = 'feedback correct';
+      fb.innerHTML = '🎉 ¡Correcto! ¡Eres un(a) crack!';
+    } else {
+      fb.className = 'feedback wrong';
+      const correctBtn = btn.parentElement.querySelector('[onclick*="true"]');
+      if (correctBtn) correctBtn.classList.add('correct');
+      fb.innerHTML = '🤔 No exactamente, pero ¡sigue intentando!';
+    }
+  }
+}
+
+// ============================================================
+// MATEMÁTICAS
+// ============================================================
+function checkMath(inputId, correctAnswer, feedbackId) {
+  const input = document.getElementById(inputId);
+  const val = parseInt(input.value);
+  const fb = document.getElementById(feedbackId);
+  if (!fb) return;
+  if (val === correctAnswer) {
+    fb.className = 'feedback correct';
+    fb.innerHTML = '🎉 ¡Correcto! ¡Eres un(a) matemático(a) genial!';
+    input.style.borderColor = '#10B981';
+  } else {
+    fb.className = 'feedback wrong';
+    fb.innerHTML = `🤔 Casi... Revisa tu operación. (Pista: el resultado está entre ${correctAnswer - 5} y ${correctAnswer + 5})`;
+    input.style.borderColor = '#EF4444';
+  }
+}
+
+// ============================================================
+// CÓDIGO SECRETO
+// ============================================================
+function checkCode() {
+  const a = parseInt(document.getElementById('code-1').value);
+  const b = parseInt(document.getElementById('code-2').value);
+  const c = parseInt(document.getElementById('code-3').value);
+  const fb = document.getElementById('fb-code');
+  const correct = (a + b + c === 9) && (a === 2 * c) && (b % 2 === 1) && (b > 3);
+  if (correct) {
+    fb.className = 'feedback correct';
+    fb.innerHTML = '🔓 ¡El castillo se abrió! ¡Eres un(a) detective brillante!';
+  } else {
+    let hints = [];
+    if (!isNaN(a + b + c) && a + b + c !== 9) hints.push('La suma no es 9 todavía');
+    if (!isNaN(a) && !isNaN(c) && a !== 2 * c) hints.push('El primer dígito debe ser el doble del tercero');
+    if (!isNaN(b) && (b % 2 === 0 || b <= 3)) hints.push('El segundo debe ser impar y mayor que 3');
+    fb.className = 'feedback wrong';
+    fb.innerHTML = '🔒 No del todo... Pista: ' + (hints[0] || 'revisa las condiciones');
+  }
+}
+
+// ============================================================
+// TABLA DE MULTIPLICAR
+// ============================================================
+function checkMultCell(input) {
+  const correct = parseInt(input.dataset.answer);
+  const val = parseInt(input.value);
+  if (!input.value) { input.className = ''; return; }
+  input.className = val === correct ? 'right' : 'wrong';
+}
+
+function checkMultTable() {
+  const inputs = document.querySelectorAll('#mult-table input');
+  let allCorrect = true;
+  inputs.forEach(inp => {
+    checkMultCell(inp);
+    if (parseInt(inp.value) !== parseInt(inp.dataset.answer)) allCorrect = false;
+  });
+  const fb = document.getElementById('mult-feedback');
+  fb.style.color = allCorrect ? '#065F46' : '#991B1B';
+  fb.textContent = allCorrect
+    ? '🎉 ¡Tabla perfecta! ¡Eres un maestro de la multiplicación!'
+    : '🤔 Hay algunos errores. Los marcados en rojo, revísalos.';
+}
+
+// ============================================================
+// DRAG & DROP — VOCABULARIO
+// ============================================================
+function dragStart(e, word) { draggedWord = word; }
+
+function dropWord(e, meaning, expectedWord) {
+  e.preventDefault();
+  const target = e.currentTarget;
+  target.classList.remove('over');
+  if (draggedWord === expectedWord) {
+    target.textContent = '✅ ' + draggedWord + ': ' + meaning;
+    target.classList.add('matched');
+    document.getElementById('word-' + draggedWord).style.opacity = '0.4';
+    document.getElementById('word-' + draggedWord).draggable = false;
+    matchedPairs++;
+    if (matchedPairs >= 4) {
+      document.getElementById('match-feedback').innerHTML = '🎉 ¡Emparejaste todas las palabras correctamente!';
+      document.getElementById('match-feedback').style.color = '#065F46';
+    }
+  } else {
+    document.getElementById('match-feedback').innerHTML = '🤔 Esa no es la pareja correcta. ¡Intenta de nuevo!';
+    document.getElementById('match-feedback').style.color = '#991B1B';
+  }
+}
+
+// ============================================================
+// PERSONAJE EN ESCRITURA
+// ============================================================
+function selectPersonaje(btn) {
+  document.querySelectorAll('.card.pink .option-btn').forEach(b => {
+    b.classList.remove('correct');
+  });
+  btn.classList.add('correct');
+  const custom = document.getElementById('personaje-propio');
+  custom.style.display = btn.textContent.includes('Invento') ? 'block' : 'none';
+}
+
+function previewStory() {
+  const inicio = document.getElementById('inicio-text').value;
+  const nudo = document.getElementById('nudo-text').value;
+  const final = document.getElementById('final-text').value;
+  if (!inicio && !nudo && !final) return;
+  const preview = document.getElementById('story-preview');
+  const previewText = document.getElementById('story-preview-text');
+  previewText.innerHTML = `
+    <p><strong>🌅 INICIO:</strong> ${inicio || '...'}</p>
+    <p><strong>😮 NUDO:</strong> ${nudo || '...'}</p>
+    <p><strong>🎉 DESENLACE:</strong> ${final || '...'}</p>
+  `;
+  preview.style.display = 'block';
+}
+
+// ============================================================
+// CANVAS DE DIBUJO
+// ============================================================
+function initCanvas(canvas) {
+  const ctx = canvas.getContext('2d');
+  let painting = false;
+
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    if (e.touches) {
+      return {
+        x: (e.touches[0].clientX - rect.left) * scaleX,
+        y: (e.touches[0].clientY - rect.top) * scaleY
+      };
+    }
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY
+    };
+  }
+
+  canvas.addEventListener('mousedown', e => { painting = true; ctx.beginPath(); });
+  canvas.addEventListener('mouseup', () => { painting = false; });
+  canvas.addEventListener('mousemove', e => {
+    if (!painting) return;
+    const pos = getPos(e);
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = drawingColor;
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+  });
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); painting = true; ctx.beginPath(); }, {passive: false});
+  canvas.addEventListener('touchend', () => painting = false);
+  canvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (!painting) return;
+    const pos = getPos(e);
+    ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.strokeStyle = drawingColor;
+    ctx.lineTo(pos.x, pos.y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
+  }, {passive: false});
+}
+
+function selectColor(dot) {
+  drawingColor = dot.dataset.color;
+  document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
+  dot.classList.add('selected');
+}
+
+function clearCanvas() {
+  const canvas = document.getElementById('drawing-canvas');
+  if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+}
+
+// ============================================================
+// CONTADOR LOCO
+// ============================================================
+function addCounter(val) {
+  counterVal += val;
+  document.getElementById('counter-val').textContent = counterVal;
+  const fb = document.getElementById('counter-feedback');
+  if (counterVal === counterTarget) {
+    fb.innerHTML = '🎉 ¡Lo lograste! ¡Llegaste exactamente a ' + counterTarget + '!';
+    fb.style.color = '#065F46';
+  } else if (counterVal > counterTarget) {
+    fb.innerHTML = '📉 Te pasaste... Prueba restar.';
+    fb.style.color = '#991B1B';
+  } else if (counterVal < 0) {
+    fb.innerHTML = '📉 Demasiado bajo... ¡suma un poco!';
+    fb.style.color = '#991B1B';
+  } else {
+    fb.innerHTML = 'Faltan ' + (counterTarget - counterVal) + ' para llegar a ' + counterTarget;
+    fb.style.color = '#6B7280';
+  }
+}
+
+function resetCounter() {
+  counterVal = 0;
+  document.getElementById('counter-val').textContent = 0;
+  document.getElementById('counter-feedback').innerHTML = '';
+}
+
+// ============================================================
+// COMPLETAR MISIÓN
+// ============================================================
+function completeMission(id) {
+  const mission = missions.find(m => m.id === id);
+  if (!mission || completedMissions.has(id)) return;
+
+  completedMissions.add(id);
+  addXP(mission.xp);
+  addStars(mission.stars);
+  renderMissions();
+
+  // Mostrar confeti
+  spawnConfetti();
+
+  // Mostrar modal
+  const modal = document.getElementById('complete-modal');
+  document.getElementById('complete-emoji').textContent = mission.emoji;
+  document.getElementById('complete-title').textContent = '¡Misión "' + mission.name + '" completada!';
+  document.getElementById('complete-msg').textContent = '¡Ganaste ' + mission.xp + ' XP y ' + mission.stars + ' estrellas!';
+  document.getElementById('stars-earned-display').textContent = '⭐'.repeat(mission.stars);
+  modal.classList.add('show');
+}
+
+function closeMissionComplete() {
+  document.getElementById('complete-modal').classList.remove('show');
+  showMap();
+}
+
+// ============================================================
+// CONFETI
+// ============================================================
+function spawnConfetti() {
+  const colors = ['#F59E0B','#EC4899','#10B981','#3B82F6','#7C3AED','#F97316'];
+  for (let i = 0; i < 60; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.top = '-20px';
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    el.style.animationDelay = Math.random() * 1.5 + 's';
+    el.style.animationDuration = (1.5 + Math.random()) + 's';
+    el.style.transform = 'rotate(' + Math.random() * 360 + 'deg)';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+  }
+}
+</script>
+</body>
+</html>
